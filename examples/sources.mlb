@@ -1,0 +1,7 @@
+(* Example/demo basis: just the autodiff library (basis-only, no vendored
+ * dependencies) plus the demo driver. *)
+$(SML_LIB)/basis/basis.mlb
+
+../lib/github.com/sjqtentacles/sml-autodiff/autodiff.mlb
+
+demo.sml

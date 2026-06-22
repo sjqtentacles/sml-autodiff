@@ -1,0 +1,6 @@
+(* MLB for the sml-autodiff library: basis-only, no vendored dependencies.
+ * Forward-mode dual numbers and the reverse-mode tape rely on nothing beyond
+ * the Standard ML Basis Library, so consumers reference this file directly. *)
+$(SML_LIB)/basis/basis.mlb
+autodiff.sig
+autodiff.sml

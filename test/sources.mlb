@@ -1,0 +1,13 @@
+(* Test executable basis: the autodiff library (basis-only) plus the harness,
+   helpers, and per-mode suites. *)
+$(SML_LIB)/basis/basis.mlb
+
+../lib/github.com/sjqtentacles/sml-autodiff/autodiff.mlb
+
+harness.sml
+support.sml
+test_forward.sml
+test_reverse.sml
+test_hessian.sml
+entry.sml
+main.sml
