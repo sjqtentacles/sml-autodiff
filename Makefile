@@ -1,26 +1,19 @@
 # sml-autodiff build
 #
-#   make            build the test binary with MLton (default)
-#   make test       build + run tests under MLton
-#   make test-poly  run tests under Poly/ML (use-and-run; no link step)
-#   make all-tests  run the suite under both compilers
-#   make example    run the gradient-descent / Newton demo, write assets/demo.txt
-#   make clean      remove build artifacts
-#
-# Layout A, dependency-free: the library sources live directly under
-# lib/github.com/sjqtentacles/sml-autodiff/ and rely on nothing beyond the
-# Standard ML Basis Library.  The test suite and the example both reference
-# that one .mlb; there are no vendored dependencies.
+#   make test             build + run tests under MLton (default)
+#   make test-poly        build + run tests under Poly/ML
+#   make verify-identical byte-compare both compilers' test output
+#   make all-tests        both compilers + the byte-identical gate
+#   make example          build + run the demo (MLton)
+#   make example-poly     build + run the demo (Poly/ML)
+#   make clean            remove build artifacts
 
 MLTON      ?= mlton
-POLY       ?= poly
 BIN        := bin
-LIBDIR     := lib/github.com/sjqtentacles/sml-autodiff
-CORE       := $(LIBDIR)/autodiff.sig $(LIBDIR)/autodiff.sml $(LIBDIR)/autodiff.mlb
 TEST_MLB   := test/sources.mlb
-SRCS       := $(CORE) $(wildcard test/*.sml) $(TEST_MLB)
+SRCS       := $(shell find lib src test examples -type f \( -name '*.sml' -o -name '*.sig' -o -name '*.mlb' \) 2>/dev/null)
 
-.PHONY: all test poly test-poly all-tests example clean
+.PHONY: all test poly test-poly verify-identical all-tests example example-poly clean
 
 all: $(BIN)/test-mlton
 
@@ -30,24 +23,40 @@ $(BIN)/test-mlton: $(SRCS) | $(BIN)
 test: $(BIN)/test-mlton
 	$(BIN)/test-mlton
 
-# Poly/ML has no native .mlb support; the suite runs at top level and exits on
-# its own.  The library is basis-only, so we just load the sig, the
-# implementation, the harness/helpers, then the per-mode suites and driver in
-# dependency order.
-poly test-poly:
-	printf 'use "$(LIBDIR)/autodiff.sig";\nuse "$(LIBDIR)/autodiff.sml";\nuse "test/harness.sml";\nuse "test/support.sml";\nuse "test/test_forward.sml";\nuse "test/test_reverse.sml";\nuse "test/test_hessian.sml";\nuse "test/entry.sml";\nuse "test/main.sml";\n' | $(POLY) -q --error-exit
+poly: $(BIN)/test-poly
 
-all-tests: test test-poly
+# Poly/ML has no native .mlb support; tools/polybuild expands the .mlb in
+# dependency order, `use`s each source, and exports `main`.
+$(BIN)/test-poly: $(SRCS) tools/polybuild | $(BIN)
+	sh tools/polybuild -o $@ $(TEST_MLB)
+
+test-poly: $(BIN)/test-poly
+	$(BIN)/test-poly
+
+# The dual-compiler contract: both test binaries must print byte-identical
+# output. diff exits nonzero (failing the target) on any divergence.
+verify-identical: $(BIN)/test-mlton $(BIN)/test-poly
+	$(BIN)/test-mlton > $(BIN)/out-mlton.txt
+	$(BIN)/test-poly  > $(BIN)/out-poly.txt
+	diff $(BIN)/out-mlton.txt $(BIN)/out-poly.txt
+	@echo "byte-identical: OK"
+
+all-tests: test test-poly verify-identical
 
 example: $(BIN)/demo
-	mkdir -p assets
 	./$(BIN)/demo
 
-$(BIN)/demo: $(CORE) examples/demo.sml examples/sources.mlb | $(BIN)
+$(BIN)/demo: $(SRCS) | $(BIN)
 	$(MLTON) -output $@ examples/sources.mlb
+
+example-poly: $(BIN)/demo-poly
+	./$(BIN)/demo-poly
+
+$(BIN)/demo-poly: $(SRCS) tools/polybuild | $(BIN)
+	sh tools/polybuild -o $@ examples/sources.mlb
 
 $(BIN):
 	mkdir -p $(BIN)
 
 clean:
-	rm -f $(BIN)/test-mlton $(BIN)/demo
+	rm -rf $(BIN)
