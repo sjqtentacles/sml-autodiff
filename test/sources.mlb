@@ -2,6 +2,20 @@
    helpers, and per-mode suites. *)
 $(SML_LIB)/basis/basis.mlb
 
+(* sml-check is a TEST-only dependency: the library itself is
+   dependency-free (see ../lib/.../sml-autodiff/autodiff.mlb), and only the
+   property-test section needs it. Include order for the flat Poly/ML `use`
+   model (tools/polybuild): sml-prng -> sml-test (check.sig references
+   Test.test in its toTest bridge) -> sml-check -> our own Harness -> the
+   library under test -> the suites + entry/main shims. *)
+
+../lib/github.com/sjqtentacles/sml-prng/prng.sig
+../lib/github.com/sjqtentacles/sml-prng/prng.sml
+../lib/github.com/sjqtentacles/sml-test/test.sig
+../lib/github.com/sjqtentacles/sml-test/test.sml
+../lib/github.com/sjqtentacles/sml-check/check.sig
+../lib/github.com/sjqtentacles/sml-check/check.sml
+
 ../lib/github.com/sjqtentacles/sml-autodiff/autodiff.mlb
 
 harness.sml
@@ -9,5 +23,6 @@ support.sml
 test_forward.sml
 test_reverse.sml
 test_hessian.sml
+test_properties.sml
 entry.sml
 main.sml

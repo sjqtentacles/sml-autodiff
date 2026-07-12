@@ -5,6 +5,7 @@ fun runAllSuites () =
   ; ForwardTests.run ()
   ; ReverseTests.run ()
   ; HessianTests.run ()
+  ; PropertyTests.run ()
   ; Harness.run () )
 
 fun main () =
