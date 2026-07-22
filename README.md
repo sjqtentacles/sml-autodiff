@@ -1,5 +1,7 @@
 # sml-autodiff
 
+[![CI](https://github.com/sjqtentacles/sml-autodiff/actions/workflows/ci.yml/badge.svg)](https://github.com/sjqtentacles/sml-autodiff/actions/workflows/ci.yml)
+
 [Automatic differentiation](https://en.wikipedia.org/wiki/Automatic_differentiation)
 in pure Standard ML — compute **exact** derivatives (no finite differences) of
 functions written in ordinary SML, in two complementary modes:
